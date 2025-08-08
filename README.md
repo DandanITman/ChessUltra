@@ -30,10 +30,18 @@ Repository Layout (initial)
 - (future) packages/rules — shared chess rules/engine
 - (future) packages/shared — shared types/utils
 
-Get Started (later)
-- Install pnpm: npm i -g pnpm
+Prerequisites (Windows)
+- Node.js 20+ (you have v24.4.1)
+- Git (you have 2.50.1)
+- pnpm (install: npm i -g pnpm)
+- Docker Desktop (for Postgres/Redis via docker-compose)
+- Optional local installs: PostgreSQL 16+, Redis 7+
+
+Quick Start (after installing pnpm)
 - Install deps: pnpm install
-- Start dev: TBD as code is added
+- Start DBs: docker compose up -d
+- Stop DBs: docker compose down
+- Dev workflows will be added as apps/packages are created
 
 License
 - MIT (see LICENSE)

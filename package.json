@@ -1,0 +1,19 @@
+{
+  "name": "chessultra",
+  "private": true,
+  "packageManager": "pnpm@9.7.0",
+  "devDependencies": {
+    "turbo": "^2.0.6"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "test": "turbo test"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
+
