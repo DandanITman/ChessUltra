@@ -3,7 +3,10 @@
   "private": true,
   "packageManager": "pnpm@9.7.0",
   "devDependencies": {
-    "turbo": "^2.0.6"
+    "@types/node": "^20.11.25",
+    "turbo": "^2.0.6",
+    "typescript": "^5.4.0",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "build": "turbo build",
@@ -16,4 +19,3 @@
     "packages/*"
   ]
 }
-
