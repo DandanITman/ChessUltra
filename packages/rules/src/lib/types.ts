@@ -29,5 +29,7 @@ export interface CastlingRights { white: CastlingSideRights; black: CastlingSide
 export interface RulesState {
   castling: CastlingRights;
   enPassantTarget: Square | null;
+  halfmoveClock: number;
+  fullmoveNumber: number;
 }
 
