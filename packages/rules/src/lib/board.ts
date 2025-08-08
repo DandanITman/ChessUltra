@@ -27,15 +27,8 @@ export class Board {
     return sq.file >= 0 && sq.file < 8 && sq.rank >= 0 && sq.rank < 8;
   }
 
-  rookMoves(from: Square, color: Color): Move[] {
+  private rayMoves(from: Square, color: Color, deltas: Array<[number, number]>): Move[] {
     const res: Move[] = [];
-    const deltas: Array<[number, number]> = [
-      [1, 0],
-      [-1, 0],
-      [0, 1],
-      [0, -1],
-    ];
-
     for (const [dx, dy] of deltas) {
       let x = from.file + dx;
       let y = from.rank + dy;
@@ -43,8 +36,8 @@ export class Board {
         const to: Square = { file: x, rank: y };
         const occ = this.get(to);
         if (occ) {
-          if (occ.color !== color) res.push({ from, to }); // capture
-          break; // blocked
+          if (occ.color !== color) res.push({ from, to });
+          break;
         } else {
           res.push({ from, to });
         }
@@ -52,8 +45,32 @@ export class Board {
         y += dy;
       }
     }
-
     return res;
+  }
+
+  rookMoves(from: Square, color: Color): Move[] {
+    return this.rayMoves(from, color, [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]);
+  }
+
+  bishopMoves(from: Square, color: Color): Move[] {
+    return this.rayMoves(from, color, [
+      [1, 1],
+      [1, -1],
+      [-1, 1],
+      [-1, -1],
+    ]);
+  }
+
+  queenMoves(from: Square, color: Color): Move[] {
+    return [
+      ...this.rookMoves(from, color),
+      ...this.bishopMoves(from, color),
+    ];
   }
 }
 
