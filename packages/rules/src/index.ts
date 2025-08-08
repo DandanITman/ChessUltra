@@ -1,5 +1,5 @@
-export * from './lib/board';
-export * from './lib/types';
-export * from './lib/legal';
-export * from './lib/state';
+export * from './lib/board.js';
+export * from './lib/types.js';
+export * from './lib/legal.js';
+export * from './lib/state.js';
 

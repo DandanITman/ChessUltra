@@ -1,5 +1,5 @@
-import type { Color, Move, Piece, RulesState, Square } from './types';
-import { Board } from './board';
+import type { Color, Move, Piece, RulesState, Square } from './types.js';
+import { Board } from './board.js';
 
 function piecePseudoMoves(board: Board, from: Square, piece: Piece, state: RulesState): Move[] {
   switch (piece.type) {

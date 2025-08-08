@@ -1,4 +1,4 @@
-import type { BoardArray, Color, Move, Piece, Square, RulesState } from './types';
+import type { BoardArray, Color, Move, Piece, Square, RulesState } from './types.js';
 
 export class Board {
   private grid: BoardArray;

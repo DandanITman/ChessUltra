@@ -13,8 +13,7 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@chessultra/shared/*": ["packages/shared/src/*"],
-      "@chessultra/rules/*": ["packages/rules/src/*"]
+      "@chessultra/shared/*": ["packages/shared/src/*"]
     }
   }
 }
