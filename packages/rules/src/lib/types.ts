@@ -14,8 +14,20 @@ export interface Square {
 
 export type BoardArray = (Piece | null)[][]; // [rank][file]
 
+export type MoveFlag = 'capture' | 'enPassant' | 'castleK' | 'castleQ' | 'promotion';
+
 export interface Move {
   from: Square;
   to: Square;
+  promotion?: PieceType;
+  flags?: MoveFlag[];
+}
+
+export interface CastlingSideRights { K: boolean; Q: boolean }
+export interface CastlingRights { white: CastlingSideRights; black: CastlingSideRights }
+
+export interface RulesState {
+  castling: CastlingRights;
+  enPassantTarget: Square | null;
 }
 

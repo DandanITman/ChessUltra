@@ -1,10 +1,21 @@
-import type { BoardArray, Color, Move, Piece, Square } from './types';
+import type { BoardArray, Color, Move, Piece, Square, RulesState } from './types';
 
 export class Board {
   private grid: BoardArray;
 
   constructor() {
     this.grid = Array.from({ length: 8 }, () => Array<Piece | null>(8).fill(null));
+  }
+
+  clone(): Board {
+    const b = new Board();
+    for (let r = 0; r < 8; r++) {
+      for (let f = 0; f < 8; f++) {
+        const p = this.grid[r][f];
+        if (p) b.grid[r][f] = { ...p };
+      }
+    }
+    return b;
   }
 
   isSquareAttacked(target: Square, byColor: Color): boolean {
@@ -82,6 +93,18 @@ export class Board {
   set(sq: Square, piece: Piece | null): void {
     if (!this.inBounds(sq)) throw new Error('Out of bounds');
     this.grid[sq.rank][sq.file] = piece;
+  }
+
+  movePiece(m: Move): void {
+    const piece = this.get(m.from);
+    if (!piece) throw new Error('No piece at from');
+    // Handle en passant capture removal
+    if (m.flags?.includes('enPassant')) {
+      const dir = piece.color === 'white' ? 1 : -1;
+      this.set({ file: m.to.file, rank: m.to.rank - dir }, null);
+    }
+    this.set(m.from, null);
+    this.set(m.to, piece);
   }
 
   inBounds(sq: Square): boolean {
