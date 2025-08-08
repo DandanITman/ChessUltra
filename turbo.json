@@ -11,7 +11,9 @@
     "lint": {},
     "test": {
       "outputs": ["coverage/**"]
-    }
+    },
+    "start": {},
+    "preview": {}
   }
 }
 
