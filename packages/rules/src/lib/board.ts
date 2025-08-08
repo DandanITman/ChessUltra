@@ -72,5 +72,35 @@ export class Board {
       ...this.bishopMoves(from, color),
     ];
   }
+
+  knightMoves(from: Square, color: Color): Move[] {
+    const res: Move[] = [];
+    const jumps: Array<[number, number]> = [
+      [1, 2], [2, 1], [2, -1], [1, -2],
+      [-1, -2], [-2, -1], [-2, 1], [-1, 2],
+    ];
+    for (const [dx, dy] of jumps) {
+      const to: Square = { file: from.file + dx, rank: from.rank + dy };
+      if (!this.inBounds(to)) continue;
+      const occ = this.get(to);
+      if (!occ || occ.color !== color) res.push({ from, to });
+    }
+    return res;
+  }
+
+  kingMoves(from: Square, color: Color): Move[] {
+    const res: Move[] = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const to: Square = { file: from.file + dx, rank: from.rank + dy };
+        if (!this.inBounds(to)) continue;
+        const occ = this.get(to);
+        if (!occ || occ.color !== color) res.push({ from, to });
+      }
+    }
+    // Castling will be handled in a higher-level legality layer later
+    return res;
+  }
 }
 
