@@ -17,7 +17,6 @@ out/
 *.tsbuildinfo
 
 # pnpm/yarn/npm
-pnpm-lock.yaml
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
