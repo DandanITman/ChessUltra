@@ -10,6 +10,9 @@ async function bootstrap() {
     new FastifyAdapter({ logger: true })
   );
 
+  // Enable CORS for local web dev
+  app.enableCors({ origin: ['http://localhost:5173'], methods: ['GET','POST','OPTIONS'] });
+
   const port = Number(process.env.PORT || 3000);
   await app.listen({ port, host: '0.0.0.0' });
   const address = await app.getUrl();
