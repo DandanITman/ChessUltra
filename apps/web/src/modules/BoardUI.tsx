@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-const API = 'http://localhost:3000';
+// Configure API base via Vite env or default to localhost:3000
+const API: string = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000';
 
 type Color = 'white' | 'black';
 type PieceType = 'king' | 'queen' | 'rook' | 'bishop' | 'knight' | 'pawn';
