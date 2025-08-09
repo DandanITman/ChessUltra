@@ -50,6 +50,7 @@ export function BoardUI() {
   const [state, setState] = useState<RulesState>(defaultState);
   const [sideToMove, setSideToMove] = useState<Color>('white');
   const [selected, setSelected] = useState<{ file: number; rank: number } | null>(null);
+  const [dragFrom, setDragFrom] = useState<{ file: number; rank: number } | null>(null);
   const [legalTargets, setLegalTargets] = useState<{ file: number; rank: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +104,6 @@ export function BoardUI() {
     const piece = pieceAt(sq.file, sq.rank);
     if (selected && legalTargets.some(t => t.file === sq.file && t.rank === sq.rank)) {
       const move: Move = { from: selected, to: sq };
-      // auto-promotion to queen for pawns reaching last rank
       const moving = pieceAt(selected.file, selected.rank);
       if (moving?.type === 'pawn' && (sq.rank === 7 || sq.rank === 0)) move.promotion = 'queen';
       void apply(move);
@@ -112,9 +112,11 @@ export function BoardUI() {
 
     if (piece && piece.color === sideToMove) {
       setSelected(sq);
+      setDragFrom(sq);
       void fetchLegal(sq, sideToMove);
     } else {
       setSelected(null);
+      setDragFrom(null);
       setLegalTargets([]);
     }
   }, [apply, fetchLegal, legalTargets, pieceAt, selected, sideToMove]);
@@ -144,25 +146,57 @@ export function BoardUI() {
           const p = pieceAt(sq.file, sq.rank);
           const isSel = selected && selected.file === sq.file && selected.rank === sq.rank;
           const isTarget = legalTargets.some(t => t.file === sq.file && t.rank === sq.rank);
+          const isCapture = isTarget && !!p; // target occupied by opponent
           return (
             <div
               key={`${sq.file},${sq.rank}`}
               onClick={() => onSquareClick(sq)}
+              onDragOver={(e) => { if (dragFrom) e.preventDefault(); }}
+              onDrop={(e) => {
+                if (!dragFrom) return;
+                if (!legalTargets.some(t => t.file === sq.file && t.rank === sq.rank)) return;
+                const move: Move = { from: dragFrom, to: sq };
+                const moving = pieceAt(dragFrom.file, dragFrom.rank);
+                if (moving?.type === 'pawn' && (sq.rank === 7 || sq.rank === 0)) move.promotion = 'queen';
+                void apply(move);
+              }}
               style={{
-                width: 56, height: 56, cursor: 'pointer',
-                background: isSel ? '#f7d674' : isTarget ? '#86efac' : dark ? '#769656' : '#eeeed2',
+                width: 56, height: 56, cursor: dragFrom ? 'copy' : 'pointer',
+                background: isSel ? '#f7d674' : isTarget ? (isCapture ? '#fca5a5' : '#86efac') : dark ? '#769656' : '#eeeed2',
                 color: dark ? '#fff' : '#111', display: 'grid', placeItems: 'center', fontSize: 28,
-                userSelect: 'none',
+                userSelect: 'none', position: 'relative',
               }}
               title={`(${sq.file},${sq.rank})`}
             >
-              {p ? <span>{pieceSymbol[p.type][p.color]}</span> : null}
+              {/* legal move marker */}
+              {isTarget && !p && (
+                <span style={{ position: 'absolute', width: 12, height: 12, borderRadius: '50%', background: '#065f46' }} />
+              )}
+              {p ? (
+                <span
+                  draggable={p.color === sideToMove}
+                  onDragStart={() => {
+                    if (p.color !== sideToMove) return;
+                    setDragFrom({ file: sq.file, rank: sq.rank });
+                    setSelected({ file: sq.file, rank: sq.rank });
+                    void fetchLegal({ file: sq.file, rank: sq.rank }, sideToMove);
+                  }}
+                  onDragEnd={() => {
+                    setDragFrom(null);
+                    setSelected(null);
+                    setLegalTargets([]);
+                  }}
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  {pieceSymbol[p.type][p.color]}
+                </span>
+              ) : null}
             </div>
           );
         })}
       </div>
 
-      <small style={{ opacity: 0.7 }}>Tip: Click your piece to see legal moves, then click a green square to move. Pawns auto-promote to queens for now.</small>
+      <small style={{ opacity: 0.7 }}>Tip: Click or drag your piece to see legal moves; green = quiet move, red = capture. Pawns auto-promote to queens for now.</small>
     </div>
   );
 }
