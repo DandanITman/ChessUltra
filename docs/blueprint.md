@@ -3,6 +3,22 @@ ChessUltra — Blueprint
 Vision
 Create a fresh, competitive, and collectible twist on chess. Players assemble custom armies within a chess point budget, unlock new piece variants via packs, and battle in real-time multiplayer or vs adaptive bots. The King remains unique and mandatory; starting placement is flexible within the first two ranks (per side) as long as total points do not exceed the budget.
 
+Progress (current)
+- Monorepo scaffolded (pnpm + turbo) with apps/server, apps/web, packages/rules
+- Rules engine (packages/rules)
+  - Implemented: rook/bishop/queen/knight/king/pawn moves, ray-casting, blocking & captures
+  - Attack detection: isSquareAttacked
+  - Legal move filtering with check detection; castling K/Q (path safe), en passant, promotion application
+  - State updates: enPassantTarget, castling rights, halfmove/fullmove counters; applyMove()
+  - Unit tests: 7 files, 18 tests passing
+- Server (apps/server)
+  - NestJS + Fastify; REST endpoints for rules testing: /rules/rook, /rules/legal (GET/POST), /rules/apply (POST)
+  - CORS enabled for localhost:5173
+- Web client (apps/web)
+  - Vite React app with Board UI: click/drag moves; legal move indicators (dot for quiet, red for capture)
+  - Promotion picker modal; board state persisted in localStorage
+  - QuickTest panel to call API directly
+
 Core Rules & Mechanics
 - Army Construction
   - Each account has a library of unlocked pieces (variants). Each variant has a point cost and ruleset (movement, range, special abilities).
@@ -31,16 +47,16 @@ Game Design Details
 - Placement Phase
   - UI to drag-and-drop pieces onto first two ranks; server validates constraints (budget, duplicates, mandatory King, etc.).
   - After both placements locked, engine initializes state and switches to normal play.
-- AI/Bot
-  - Pluggable AI: start with Stockfish engine integration for classic moves; for variants, implement a minimax/alpha-beta with heuristics that uses the shared rule engine.
-  - Difficulty: adjust depth, time per move, and heuristics.
+- AI/Bot (next major)
+  - Start with simple minimax/alpha-beta using current rules; later consider Stockfish integration for classic mode.
+  - Difficulty: adjust depth/time per move.
 
 Architecture
 - Monorepo (pnpm + Turborepo) with packages:
   - packages/rules: pure TypeScript rules engine (deterministic, no I/O).
   - packages/shared: schema/types (Zod), DTOs, and utilities shared by client/server.
   - apps/server: NestJS server with REST + WebSocket (Gateway) for matchmaking, placement, and gameplay.
-  - apps/web: React client using Vite or Next.js; Zustand/Redux for state; Tailwind for styling.
+  - apps/web: React client using Vite; state persisted via localStorage (for now).
 - Communication
   - REST: auth, inventory, packs, profiles, leaderboards.
   - WebSocket: matchmaking events, lobby updates, placement sync, real-time moves, clocks.
@@ -81,10 +97,10 @@ Testing Strategy
 - E2E: Playwright for critical flows: signup, open pack, build army, place, play vs bot end-to-end.
 
 Milestones & Roadmap
-- M0: Planning & Repo scaffold (this)
-- M1: Rules Engine MVP (classic chess only) + serializer for placements
-- M2: Server MVP: match vs bot using classic rules; placement enforcement
-- M3: Web Client MVP: placement UI + basic play vs bot
+- M0: Planning & Repo scaffold — DONE
+- M1: Rules Engine MVP (classic) — DONE (moves, legal, state updates, tests)
+- M2: Server MVP: vs Bot using classic rules; placement enforcement — NEXT
+- M3: Web Client MVP: placement editor + vs Bot polish — PARTIAL (board UI with legal moves, DnD, promotion picker)
 - M4: Multiplayer: matchmaking + real-time moves
 - M5: Packs & Inventory system + basic economy
 - M6: Ranked mode, leaderboards, polish
@@ -99,8 +115,8 @@ Risks & Mitigations
 - Real-time sync: use authoritative server and robust reconciliation.
 - Cheating: server-only decisions and log-based detection; optional device attestation in future.
 
-Initial Deliverables (this commit)
+Initial Deliverables
 - README with vision and structure
-- docs/blueprint.md with detailed plan
+- docs/blueprint.md with detailed plan and progress
 - .gitignore and LICENSE
 
