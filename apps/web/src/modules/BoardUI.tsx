@@ -37,12 +37,15 @@ function defaultState(): RulesState {
 
 function startingSample(): Piece[] {
   const pieces: Piece[] = [];
-  // kings
-  pieces.push({ file: 4, rank: 0, type: 'king', color: 'white' });
-  pieces.push({ file: 4, rank: 7, type: 'king', color: 'black' });
-  // a few pawns for fun
-  pieces.push({ file: 0, rank: 1, type: 'pawn', color: 'white' });
-  pieces.push({ file: 4, rank: 6, type: 'pawn', color: 'black' });
+  const back = [
+    ['rook','knight','bishop','queen','king','bishop','knight','rook'] as PieceType[],
+  ];
+  // white back rank and pawns
+  for (let f = 0; f < 8; f++) pieces.push({ file: f, rank: 1, type: 'pawn', color: 'white' });
+  back[0].forEach((t, f) => pieces.push({ file: f, rank: 0, type: t, color: 'white' }));
+  // black back rank and pawns
+  for (let f = 0; f < 8; f++) pieces.push({ file: f, rank: 6, type: 'pawn', color: 'black' });
+  back[0].forEach((t, f) => pieces.push({ file: f, rank: 7, type: t, color: 'black' }));
   return pieces;
 }
 
@@ -119,6 +122,22 @@ export function BoardUI() {
       setSelected(null);
       setLegalTargets([]);
       setSideToMove(prev => (prev === 'white' ? 'black' : 'white'));
+      // If it is now bot's turn, ask the server to make a move
+      const aiColor: Color = 'black';
+      if (aiColor === (sideToMove === 'white' ? 'black' : 'white')) {
+        try {
+          const r = await fetch('/bot/move', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pieces: json.pieces, state: json.state, sideToMove: (sideToMove === 'white' ? 'black' : 'white'), ai: aiColor }),
+          });
+          const bj = await r.json();
+          setPieces(bj.pieces);
+          setState(bj.state);
+          setSideToMove(bj.sideToMove);
+        } catch (be) {
+          console.error('Bot move failed', be);
+        }
+      }
     } catch (e: any) {
       setError(e?.message ?? 'Failed to apply move');
     } finally { setLoading(false); }
@@ -157,12 +176,25 @@ export function BoardUI() {
     setError(null);
   }, []);
 
+  const playVsBot = useCallback(async () => {
+    setLoading(true); setError(null);
+    try {
+      const res = await fetch('/bot/start', { method: 'POST' });
+      const json = await res.json();
+      setPieces(json.pieces);
+      setState(json.state);
+      setSideToMove(json.sideToMove);
+    } catch (e: any) { setError(e?.message ?? 'Failed to start bot'); }
+    finally { setLoading(false); }
+  }, []);
+
   return (
     <div style={{ display: 'grid', gap: 12 }}>
       <h2>Board UI</h2>
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
         <div>Side to move: <b>{sideToMove}</b></div>
         <button onClick={reset}>Reset sample</button>
+        <button onClick={playVsBot}>Play vs Bot (start)</button>
         {loading && <span>Loading…</span>}
         {error && <span style={{ color: 'red' }}>{error}</span>}
       </div>
