@@ -49,9 +49,32 @@ export function BoardUI() {
   const [pieces, setPieces] = useState<Piece[]>(startingSample);
   const [state, setState] = useState<RulesState>(defaultState);
   const [sideToMove, setSideToMove] = useState<Color>('white');
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('chessultra_board');
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved?.pieces && saved?.state && saved?.sideToMove) {
+          setPieces(saved.pieces);
+          setState(saved.state);
+          setSideToMove(saved.sideToMove);
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Persist changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('chessultra_board', JSON.stringify({ pieces, state, sideToMove }));
+    } catch {}
+  }, [pieces, state, sideToMove]);
   const [selected, setSelected] = useState<{ file: number; rank: number } | null>(null);
   const [dragFrom, setDragFrom] = useState<{ file: number; rank: number } | null>(null);
   const [legalTargets, setLegalTargets] = useState<{ file: number; rank: number }[]>([]);
+  const [pendingPromo, setPendingPromo] = useState<{ from: { file: number; rank: number }; to: { file: number; rank: number } } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,9 +126,12 @@ export function BoardUI() {
   const onSquareClick = useCallback((sq: { file: number; rank: number }) => {
     const piece = pieceAt(sq.file, sq.rank);
     if (selected && legalTargets.some(t => t.file === sq.file && t.rank === sq.rank)) {
-      const move: Move = { from: selected, to: sq };
       const moving = pieceAt(selected.file, selected.rank);
-      if (moving?.type === 'pawn' && (sq.rank === 7 || sq.rank === 0)) move.promotion = 'queen';
+      if (moving?.type === 'pawn' && (sq.rank === 7 || sq.rank === 0)) {
+        setPendingPromo({ from: selected, to: sq });
+        return;
+      }
+      const move: Move = { from: selected, to: sq };
       void apply(move);
       return;
     }
@@ -155,9 +181,12 @@ export function BoardUI() {
               onDrop={(e) => {
                 if (!dragFrom) return;
                 if (!legalTargets.some(t => t.file === sq.file && t.rank === sq.rank)) return;
-                const move: Move = { from: dragFrom, to: sq };
                 const moving = pieceAt(dragFrom.file, dragFrom.rank);
-                if (moving?.type === 'pawn' && (sq.rank === 7 || sq.rank === 0)) move.promotion = 'queen';
+                if (moving?.type === 'pawn' && (sq.rank === 7 || sq.rank === 0)) {
+                  setPendingPromo({ from: dragFrom, to: sq });
+                  return;
+                }
+                const move: Move = { from: dragFrom, to: sq };
                 void apply(move);
               }}
               style={{
@@ -196,7 +225,26 @@ export function BoardUI() {
         })}
       </div>
 
-      <small style={{ opacity: 0.7 }}>Tip: Click or drag your piece to see legal moves; green = quiet move, red = capture. Pawns auto-promote to queens for now.</small>
+      {/* Promotion modal */}
+      {pendingPromo && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'grid', placeItems: 'center' }}>
+          <div style={{ background: '#fff', padding: 16, borderRadius: 8, display: 'grid', gap: 8, minWidth: 280 }}>
+            <h3>Choose promotion</h3>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {(['queen','rook','bishop','knight'] as PieceType[]).map(pt => (
+                <button key={pt} onClick={() => {
+                  const move: Move = { from: pendingPromo.from, to: pendingPromo.to, promotion: pt };
+                  setPendingPromo(null);
+                  void apply(move);
+                }}>{pt}</button>
+              ))}
+            </div>
+            <button onClick={() => setPendingPromo(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      <small style={{ opacity: 0.7 }}>Tip: Click or drag your piece to see legal moves; green = quiet move, red = capture. Promotions now show a picker.</small>
     </div>
   );
 }
