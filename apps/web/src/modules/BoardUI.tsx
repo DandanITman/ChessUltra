@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-// Configure API base via Vite env or default to localhost:3000
-const API: string = (import.meta as any).env?.VITE_API_URL ?? 'http://localhost:3000';
+// Use relative paths; Vite dev proxies /rules and /health to the server
+const API = '';
 
 type Color = 'white' | 'black';
 type PieceType = 'king' | 'queen' | 'rook' | 'bishop' | 'knight' | 'pawn';
@@ -94,7 +94,7 @@ export function BoardUI() {
   const fetchLegal = useCallback(async (from: { file: number; rank: number }, color: Color) => {
     setLoading(true); setError(null);
     try {
-      const res = await fetch(`${API}/rules/legal`, {
+      const res = await fetch(`/rules/legal`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pieces, from, color, state }),
       });
@@ -109,7 +109,7 @@ export function BoardUI() {
   const apply = useCallback(async (move: Move) => {
     setLoading(true); setError(null);
     try {
-      const res = await fetch(`${API}/rules/apply`, {
+      const res = await fetch(`/rules/apply`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pieces, move, state }),
       });
